@@ -1,66 +1,72 @@
-import React, {useEffect, useState} from "react";
-import { useLocation } from "react-router-dom";
-import ProductList from "../common/ProductList";
-import Pagination from "../common/Pagination";
-import ApiService from "../../service/ApiService";
-import '../../style/home.css';
+import { useEffect, useState } from "react";
+import '../../../styles/home.css';
+import { useCart } from '../context/CartContext';
+// import { toast } from 'react-toastify';
 
+function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { dispatch } = useCart();
 
-const Home = () => {
-    const location = useLocation();
-    const [products, setProducts] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(0);
-    const [error, setError] = useState(null);
-    const itemsPerPage = 10;
+  useEffect(() => {
+    setLoading(true);
+    fetch("http://localhost:5000/api/products")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch products");
+        return res.json();
+      })
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching products:", err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
-    useEffect(()=> {
+  if (loading) {
+    return <div className="main">Loading...</div>;
+  }
 
-        const fetchProducts = async () => {
-            try{
-                let allProducts = [];
-                const queryparams = new URLSearchParams(location.search);
-                const searchItem = queryparams.get('search')
+  if (error) {
+    return <div className="main">Error: {error}</div>;
+  }
 
-                if (searchItem) {
-                    const response = await ApiService.searchProducts(searchItem);
-                    allProducts = response.productList || [];
-                }else{
-                    const response = await ApiService.getAllProducts();
-                    allProducts = response.productList || [];
-
-                }
-
-                setTotalPages(Math.ceil(allProducts.length/itemsPerPage));
-                setProducts(allProducts.slice((currentPage -1) * itemsPerPage, currentPage * itemsPerPage));
-               
-            }catch(error){
-                setError(error.response?.data?.message || error.message || 'unable to fetch products')
-            }
-        }
-
-        fetchProducts();
-
-    },[location.search, currentPage])
-
-
-    return(
-        <div className="home">
-            <h1>Home</h1>
-            {error ? (
-                <p className="error-message">{error}</p>
-            ):(
-                <div>
-                    <ProductList products={products}/>
-                    <Pagination  currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={(page)=> setCurrentPage(page)}/>
-                </div>
-            )}
-        </div>
-    )
-
-
+  return (
+    <div className="main">
+      <div className="products-grid">
+        {products.map((product) => (
+          <div className="product-container" key={product.id}>
+            <div className="product-image-container">
+              <img
+                src={`/${product.image}`}
+                alt={product.name}
+                className="product-imagee"
+              />
+            </div>
+            <div className="product-name">{product.name}</div>
+            <div className="product-rating-container">
+              <div className="product-rating-stars">⭐ {product.rating.stars}</div>
+              <div className="product-rating-count">({product.rating.count})</div>
+            </div>
+            <div className="product-price">₹{(product.priceCents / 100).toFixed(2)}</div>
+            <button
+              className="add-to-cart-button"
+              onClick={() => {
+                dispatch({ type: "ADD_ITEM", payload: product });
+                // toast.success(`${product.name} added to cart!`);
+              }}
+            >
+              Add To Cart
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default Home;

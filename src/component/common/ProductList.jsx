@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import '../../style/productList.css';
+import { products } from '../../../data/products.js';
 
 
 const ProductList = ({products}) => {
@@ -33,7 +34,7 @@ const ProductList = ({products}) => {
                     return (
                         <div className="product-item" key={index}>
                             <Link to={`/product/${product.id}`}>
-                            <img src={product.imageUrl} alt={product.name} className="product-image" />
+                            <img src="${product.image}" alt={product.name} className="product-image" />
                             <h3>{product.name}</h3>
                             <p>{product.description}</p>
                             <span>${product.price.toFixed(2)}</span>

@@ -33,7 +33,9 @@ const Navbar = () => {
 
     return(
         <nav className="navbar">
+            
             <div className="navbar-brand">
+                {/* <h1 className="ecom-text">First-Door</h1> */}
                 <NavLink to="/" > <img src="./vite.svg" alt="KJ Mart" /></NavLink>
             </div>
             {/* SEARCH FORM */}

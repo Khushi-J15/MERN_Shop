@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import '../../../styles/home.css';
 import { useCart } from '../context/CartContext';
-// import { toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import '../../style/ReactToastify.css';
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -57,7 +58,10 @@ function Home() {
               className="add-to-cart-button"
               onClick={() => {
                 dispatch({ type: "ADD_ITEM", payload: product });
-                // toast.success(`${product.name} added to cart!`);
+                toast.success(`${product.name} added to cart!`, {
+                  position: 'top-right',
+                  autoClose: 3000,
+                });
               }}
             >
               Add To Cart

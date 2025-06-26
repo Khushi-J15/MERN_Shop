@@ -1,71 +1,82 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from 'react-toastify';
 import ApiService from "../../service/ApiService";
-import '../../style/register.css'
-
+import '../../style/login.css';
 
 const LoginPage = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
-    const [message, setMessage] = useState(null);
-    const navigate = useNavigate();
-
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await ApiService.loginUser(formData);
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('role', response.role);
+      toast.success('User logged in successfully!', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      setTimeout(() => {
+        navigate(response.role === 'ADMIN' ? '/admin' : '/profile');
+      }, 3000);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Unable to login';
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await ApiService.loginUser(formData);
-            if (response.status === 200) {
-                setMessage("User Successfully Loged in");
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('role', response.role);
-                setTimeout(() => {
-                    navigate("/profile")
-                }, 4000)
-            }
-        } catch (error) {
-            setMessage(error.response?.data.message || error.message || "unable to Login a user");
-        }
-    }
-
-    return (
-        <div className="register-page">
-            <h2>Login</h2>
-            {message && <p className="message">{message}</p>}
-            <form onSubmit={handleSubmit}>
-                <label>Email: </label>
-                <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required />
-                    
-                <label>Password: </label>
-                <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required />
-
-                    <button type="submit">Login</button>
-                    
-                    <p className="register-link">
-                        Don't have an account? <a href="/register">Register</a>
-                    </p>
-            </form>
+  return (
+    <div className="login-page">
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit} className="login-form">
+        <div className="form-group">
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
         </div>
-    )
-}
+        <div className="form-group">
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
+        </div>
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+        <p className="login-link">
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
+      </form>
+    </div>
+  );
+};
 
 export default LoginPage;

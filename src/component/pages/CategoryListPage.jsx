@@ -1,54 +1,72 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ApiService from "../../service/ApiService";
-import '../../style/categoryListPage.css'
+import products from "../../../products.json";
+import '../../style/categoryListPage.css';
 
 const CategoryListPage = () => {
-    const [categories, setCategories] = useState([]);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-
-
-
-    const fetchCategories = async () => {
-        try {
-            const response = await ApiService.getAllCategory();
-            setCategories(response.categoryList || [])
-
-        } catch (err) {
-
-            setError(err.response?.data?.message || err.message || 'Unable to fetch categories')
-
-        }
+  const fetchCategories = () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // Extract unique categories from products.json
+      const uniqueCategories = [...new Set(products.map(product => product.category))]
+        .map((name, index) => ({
+          id: index + 1, // Generate IDs starting from 1
+          name
+        }));
+      console.log("Parsed categories:", uniqueCategories); // Debug log
+      setCategories(uniqueCategories);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error processing categories:", err);
+      setError(err.message || 'Unable to process categories');
+      setLoading(false);
     }
+  };
 
-    const handleCategoryClick = (categoryId) => {
-        navigate(`/category/${categoryId}`);
-    } 
+  const handleCategoryClick = (categoryId) => {
+    navigate(`/category/${categoryId}`);
+  };
 
-    return(
-        <div className="category-list">
-            {error ? (
-                <p className="error-message">{error}</p>
-            ):(
-                <div>
-                    <h2>Categories</h2>
-                    <ul>
-                        {categories.map((category)=>(
-                            <li key={category.id}>
-                                <button onClick={()=> handleCategoryClick(category.id)}>{category.name}</button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+  return (
+    <div className="category-list">
+      {loading ? (
+        <p className="loading-message">Loading categories...</p>
+      ) : error ? (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={fetchCategories} className="retry-button">Retry</button>
         </div>
-    )
-}
+      ) : categories.length === 0 ? (
+        <div className="empty-message">
+          <p>No categories available.</p>
+          <button onClick={fetchCategories} className="retry-button">Refresh</button>
+        </div>
+      ) : (
+        <div>
+          <h2 className="Category-txt">Categories</h2>
+          <ul>
+            {categories.map((category) => (
+              <li key={category.id}>
+                <button onClick={() => handleCategoryClick(category.id)}>
+                  {category.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default CategoryListPage;

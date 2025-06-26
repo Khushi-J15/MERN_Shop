@@ -22,6 +22,9 @@ import AddProductPage from './component/admin/AddProductPage';
 import EditProductPage from './component/admin/EditProductPage';
 import AdminOrdersPage from './component/admin/AdminOrderPage';
 
+import { ToastContainer } from 'react-toastify';
+import './style/ReactToastify.css';
+
 function App() {
 
   return (
@@ -29,6 +32,19 @@ function App() {
       <BrowserRouter>
       <CartProvider>
         <Navbar/>
+
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
           <Routes>
             <Route exact path='/' element={<Home/>}/>
             <Route path='/product/:productId' element={<ProductDetailsPage/>}/>
